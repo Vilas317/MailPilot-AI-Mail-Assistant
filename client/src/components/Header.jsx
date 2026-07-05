@@ -17,13 +17,16 @@ export default function Header() {
       });
   }, []);
 
-  const handleLogin = () => {
-    window.location.href = "http://localhost:5000/auth/google";
-  };
+  const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  const handleLogout = () => {
-    window.location.href = "http://localhost:5000/auth/logout";
-  };
+const handleLogin = () => {
+  window.location.href = `${API_URL}/auth/google`;
+};
+
+const handleLogout = () => {
+  window.location.href = `${API_URL}/auth/logout`;
+};
 
   return (
     <div className="h-16 bg-white shadow flex items-center justify-between px-6">
