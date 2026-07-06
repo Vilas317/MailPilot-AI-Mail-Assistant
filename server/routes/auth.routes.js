@@ -23,9 +23,10 @@ router.get(
     failureRedirect: "/",
   }),
   (req, res) => {
-    console.log("=== GOOGLE CALLBACK ===");
-    console.log("User exists:", !!req.user);
-    console.log("Session ID:", req.sessionID);
+    console.log("========== CALLBACK ==========");
+    console.log("req.user:", req.user);
+    console.log("req.session:", req.session);
+    console.log("Authenticated:", req.isAuthenticated());
 
     res.redirect(process.env.CLIENT_URL);
   }

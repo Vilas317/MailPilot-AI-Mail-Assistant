@@ -18,15 +18,15 @@ export default function Header() {
   }, []);
 
   const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000";
+    import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const handleLogin = () => {
-  window.location.href = `${API_URL}/auth/google`;
-};
+  const handleLogin = () => {
+    window.location.href = `${API_URL}/auth/google`;
+  };
 
-const handleLogout = () => {
-  window.location.href = `${API_URL}/auth/logout`;
-};
+  const handleLogout = () => {
+    window.location.href = `${API_URL}/auth/logout`;
+  };
 
   return (
     <div className="h-16 bg-white shadow flex items-center justify-between px-6">
@@ -37,14 +37,14 @@ const handleLogout = () => {
       {user ? (
         <div className="flex items-center gap-3">
           <img
-  src={user?.photos?.[0]?.value || "https://ui-avatars.com/api/?name=User"}
-  alt="Profile"
-  className="w-10 h-10 rounded-full"
-/>
+            src={user?.photos?.[0]?.value || "https://ui-avatars.com/api/?name=User"}
+            alt="Profile"
+            className="w-10 h-10 rounded-full"
+          />
 
-<span className="font-medium text-gray-700">
-  {user.displayName}
-</span>
+          <span className="font-medium text-gray-700">
+            {user.displayName}
+          </span>
 
           <button
             onClick={handleLogout}

@@ -16,6 +16,7 @@ console.log("CLIENT ID:", process.env.GOOGLE_CLIENT_ID);
 console.log("CALLBACK:", process.env.GOOGLE_CALLBACK_URL);
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.use(
   cors({
@@ -32,10 +33,12 @@ app.use(
     resave: false,
     saveUninitialized: false,
 
+    proxy: true,
+
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
     },
   })
