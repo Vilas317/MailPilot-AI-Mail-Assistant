@@ -29,7 +29,7 @@ export default function EmailDetail() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <p className="text-lg text-gray-500 animate-pulse">
+        <p className="text-lg text-gray-500 dark:text-slate-400 animate-pulse">
           Loading email...
         </p>
       </div>
@@ -38,16 +38,18 @@ export default function EmailDetail() {
 
   if (!email) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm p-12 text-center transition-colors">
+
         <div className="text-6xl mb-4">📭</div>
-  
-        <h2 className="text-2xl font-semibold text-gray-800">
+
+        <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
           Email not found
         </h2>
-  
-        <p className="mt-2 text-gray-500">
+
+        <p className="mt-2 text-gray-500 dark:text-slate-400">
           The email may have been deleted or is no longer available.
         </p>
+
       </div>
     );
   }
@@ -58,36 +60,40 @@ export default function EmailDetail() {
     headers.find((h) => h.name === name)?.value || "";
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
-      <h1 className="text-3xl font-bold">
+    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm p-8 transition-colors">
+
+      <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
         {getHeader("Subject")}
       </h1>
 
-      <div className="mt-6 space-y-3 text-sm text-gray-700">
-  <div>
-    <span className="font-semibold">From:</span>{" "}
-    {getHeader("From")}
-  </div>
+      <div className="mt-6 space-y-3 text-sm text-gray-700 dark:text-slate-300">
 
-  <div>
-    <span className="font-semibold">To:</span>{" "}
-    {getHeader("To")}
-  </div>
+        <div>
+          <span className="font-semibold">From:</span>{" "}
+          {getHeader("From")}
+        </div>
 
-  <div>
-    <span className="font-semibold">Date:</span>{" "}
-    {getHeader("Date")}
-  </div>
-</div>
+        <div>
+          <span className="font-semibold">To:</span>{" "}
+          {getHeader("To")}
+        </div>
 
-<hr className="my-8 border-gray-200" />
+        <div>
+          <span className="font-semibold">Date:</span>{" "}
+          {getHeader("Date")}
+        </div>
 
-<div
-  className="prose prose-gray max-w-none"
+      </div>
+
+      <hr className="my-8 border-gray-200 dark:border-slate-700" />
+
+      <div
+        className="prose prose-gray dark:prose-invert max-w-none"
         dangerouslySetInnerHTML={{
           __html: email.decodedBody || email.snippet,
         }}
       />
+
     </div>
   );
 }

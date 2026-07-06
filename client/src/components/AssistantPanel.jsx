@@ -154,21 +154,21 @@ export default function AssistantPanel() {
   };
 
   return (
-    <aside className="w-96 bg-white border-l border-gray-200 flex flex-col">
+    <aside className="w-96 bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-slate-700 flex flex-col transition-colors">
 
       {/* Header */}
-      <div className="p-5 border-b">
-        <h2 className="text-xl font-bold flex items-center gap-2">
+      <div className="p-5 border-b border-gray-200 dark:border-slate-700">
+        <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
           🤖 AI Assistant
         </h2>
 
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
           Control your mailbox using natural language.
         </p>
 
         {/* Quick Commands */}
         <div className="mt-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400 mb-3">
             💡 Quick Commands
           </p>
 
@@ -179,7 +179,7 @@ export default function AssistantPanel() {
                 type="button"
                 disabled={loading}
                 onClick={() => handleQuickCommand(command)}
-                className="text-xs bg-gray-100 hover:bg-blue-100 hover:text-blue-700 border border-gray-200 rounded-full px-3 py-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-xs bg-gray-100 dark:bg-slate-800 dark:text-slate-200 hover:bg-blue-100 dark:hover:bg-slate-700 hover:text-blue-700 dark:hover:text-white border border-gray-200 dark:border-slate-700 rounded-full px-3 py-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {command}
               </button>
@@ -189,7 +189,7 @@ export default function AssistantPanel() {
       </div>
 
       {/* Chat */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-slate-900 transition-colors">
 
         {messages.map((msg, index) => (
           <div
@@ -204,7 +204,7 @@ export default function AssistantPanel() {
               className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap shadow-sm ${
                 msg.role === "user"
                   ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-800"
+                  : "bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-slate-100"
               }`}
             >
               {msg.content}
@@ -214,7 +214,7 @@ export default function AssistantPanel() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-2xl px-4 py-3 text-sm animate-pulse">
+            <div className="bg-gray-100 dark:bg-slate-800 dark:text-slate-100 rounded-2xl px-4 py-3 text-sm animate-pulse">
               🤖 Thinking...
             </div>
           </div>
@@ -225,7 +225,7 @@ export default function AssistantPanel() {
       </div>
 
       {/* Input */}
-      <div className="border-t p-4 flex gap-2">
+      <div className="border-t border-gray-200 dark:border-slate-700 p-4 flex gap-2">
 
         <input
           type="text"
@@ -234,13 +234,13 @@ export default function AssistantPanel() {
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={loading}
-          className="flex-1 rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100"
+          className="flex-1 rounded-xl border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 disabled:bg-gray-100 dark:disabled:bg-slate-800 placeholder:text-slate-400 dark:placeholder:text-slate-500"
         />
 
         <button
           onClick={handleSend}
           disabled={loading}
-          className="bg-blue-600 text-white px-5 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-xl transition-all duration-200 disabled:opacity-50"
         >
           {loading ? "..." : "Send"}
         </button>

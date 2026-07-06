@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 
-export default function Header() {
+export default function Header({ darkMode, toggleTheme }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -29,38 +29,54 @@ export default function Header() {
   };
 
   return (
-    <div className="h-16 bg-white shadow flex items-center justify-between px-6">
-      <h2 className="text-xl font-semibold">
+    <div className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow flex items-center justify-between px-6 transition-colors">
+
+      <h2 className="text-xl font-semibold text-slate-800 dark:text-white">
         Processity Mail AI
       </h2>
 
-      {user ? (
-        <div className="flex items-center gap-3">
-          <img
-            src={user?.photos?.[0]?.value || "https://ui-avatars.com/api/?name=User"}
-            alt="Profile"
-            className="w-10 h-10 rounded-full"
-          />
+      <div className="flex items-center gap-4">
 
-          <span className="font-medium text-gray-700">
-            {user.displayName}
-          </span>
-
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 transition text-white px-4 py-2 rounded-lg"
-          >
-            Logout
-          </button>
-        </div>
-      ) : (
+        {/* Theme Toggle */}
         <button
-          onClick={handleLogin}
-          className="bg-blue-600 hover:bg-blue-700 transition text-white px-4 py-2 rounded-lg"
+          onClick={toggleTheme}
+          className="w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 hover:scale-105 transition flex items-center justify-center text-xl"
+          title="Toggle Theme"
         >
-          Login
+          {darkMode ? "☀️" : "🌙"}
         </button>
-      )}
+
+        {user ? (
+          <>
+            <img
+              src={
+                user?.photos?.[0]?.value ||
+                "https://ui-avatars.com/api/?name=User"
+              }
+              alt="Profile"
+              className="w-10 h-10 rounded-full border"
+            />
+
+            <span className="font-medium text-slate-700 dark:text-slate-200">
+              {user.displayName}
+            </span>
+
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 transition text-white px-4 py-2 rounded-lg"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={handleLogin}
+            className="bg-blue-600 hover:bg-blue-700 transition text-white px-4 py-2 rounded-lg"
+          >
+            Login
+          </button>
+        )}
+      </div>
     </div>
   );
 }

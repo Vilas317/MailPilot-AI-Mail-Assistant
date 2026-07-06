@@ -24,13 +24,12 @@ export default function Inbox() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-
   }, [emails, setEmails]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-lg text-gray-500 animate-pulse">
+        <p className="text-lg text-gray-500 dark:text-slate-400 animate-pulse">
           Loading emails...
         </p>
       </div>
@@ -39,19 +38,19 @@ export default function Inbox() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">
+      <h1 className="text-3xl font-bold mb-6 text-slate-900 dark:text-white">
         Inbox
       </h1>
 
       {emails.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-12 text-center transition-colors">
           <div className="text-6xl mb-4">📭</div>
 
-          <h2 className="text-2xl font-semibold text-gray-800">
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
             No emails found
           </h2>
 
-          <p className="mt-2 text-gray-500">
+          <p className="mt-2 text-gray-500 dark:text-slate-400">
             Try another search or check back later.
           </p>
         </div>
