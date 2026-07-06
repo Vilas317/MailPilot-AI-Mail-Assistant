@@ -47,15 +47,16 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use((req, res, next) => {
-  console.log("==============");
-  console.log("Session:", req.session);
-  console.log("User:", req.user);
-  console.log("Authenticated:", req.isAuthenticated());
-  console.log("==============");
-
-  next();
-});
+if (process.env.NODE_ENV !== "production") {
+  app.use((req, res, next) => {
+    console.log("==============");
+    console.log("Session:", req.session);
+    console.log("User:", req.user);
+    console.log("Authenticated:", req.isAuthenticated());
+    console.log("==============");
+    next();
+  });
+}
 
 app.use("/auth", authRoutes);
 app.use("/ai", aiRoutes);
