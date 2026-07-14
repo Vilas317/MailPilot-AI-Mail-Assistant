@@ -28,7 +28,7 @@ export default function AssistantPanel() {
     {
       role: "assistant",
       content:
-        "👋 Hello! I'm your Processity Mail AI assistant. How can I help you today?",
+        "👋 Hello! I'm your MailPilot AI assistant. How can I help you today?",
     },
   ]);
 

@@ -32,7 +32,7 @@ export default function Header({ darkMode, toggleTheme }) {
     <div className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow flex items-center justify-between px-6 transition-colors">
 
 <h2 className="text-xl font-semibold text-slate-800 dark:text-white">
-  Processity Mail AI
+MailPilot AI Mail Assistant
 </h2>
 
       <div className="flex items-center gap-4">

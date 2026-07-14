@@ -64,7 +64,7 @@ app.use("/ai", aiRoutes);
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Processity Mail AI Backend Running",
+    message: "MailPilot Backend Running",
   });
 });
 

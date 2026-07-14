@@ -10,13 +10,13 @@ export default function Sidebar() {
           <span className="text-3xl">📧</span>
 
           <div>
-            <h1 className="text-xl font-bold">
-              Processity
-            </h1>
+          <h1 className="text-xl font-bold">
+  MailPilot
+</h1>
 
-            <p className="text-xs text-slate-400">
-              Mail AI
-            </p>
+<p className="text-xs text-slate-400">
+  AI Mail Assistant
+</p>
           </div>
         </div>
       </div>
@@ -69,7 +69,8 @@ export default function Sidebar() {
       <div className="border-t border-slate-700 px-4 py-5 text-center">
 
         <p className="text-xs font-semibold text-slate-300">
-          Processity Mail AI
+        MailPilot
+        AI Email Assistant
         </p>
 
         <p className="mt-1 text-[11px] text-slate-500">

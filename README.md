@@ -1,4 +1,4 @@
-# 📧 MailPilot AI Mail Assistant
+# 📧 Processity Mail AI
 
 An AI-powered Gmail client built with the MERN stack that enables users to manage their inbox using natural language. The application integrates Google OAuth for authentication, Gmail API for email management, and OpenAI GPT-4.1 Mini to provide intelligent email assistance such as summarization, reply generation, email drafting, and smart search.
 

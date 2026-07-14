@@ -16,7 +16,7 @@
 
 //   return (
 //     <div style={{ padding: "40px" }}>
-//       <h1>Processity Mail AI</h1>
+//       <h1>MailPilot AI Mail Assistant</h1>
 
 //       <h2>{message}</h2>
 //     </div>
