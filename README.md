@@ -326,7 +326,3 @@ LinkedIn:
 https://www.linkedin.com/in/vilas-tamrakar/
 
 ---
-
-## 📄 License
-
-This project was developed as part of the **Processity.ai Fullstack AI Applied Engineer Take-Home Assignment**.
