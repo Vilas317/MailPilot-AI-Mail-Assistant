@@ -1,4 +1,4 @@
-# 📧 Processity Mail AI
+# 📧 MailPilot AI Mail Assistant
 
 An AI-powered Gmail client built with the MERN stack that enables users to manage their inbox using natural language. The application integrates Google OAuth for authentication, Gmail API for email management, and OpenAI GPT-4.1 Mini to provide intelligent email assistance such as summarization, reply generation, email drafting, and smart search.
 
@@ -22,7 +22,7 @@ https://processity-mail-ai-2j8z.onrender.com
 
 # 📌 Project Overview
 
-Processity Mail AI is an intelligent email client that combines Gmail with AI-powered productivity features.
+MailPilot AI Mail Assistant is an intelligent email client that combines Gmail with AI-powered productivity features.
 
 Users can securely authenticate with their Google account, browse inbox and sent emails, compose new emails, and interact with an AI assistant using natural language.
 
@@ -227,7 +227,7 @@ Compose an email to HR
 # 📂 Project Structure
 
 ```
-processity-mail-ai
+Mailpilot
 │
 ├── client
 │   ├── src
