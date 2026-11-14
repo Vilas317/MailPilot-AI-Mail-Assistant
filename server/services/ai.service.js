@@ -6,7 +6,7 @@ const groq = new Groq({
 
 exports.detectIntent = async (message) => {
   const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-120b",
 
     temperature: 0.2,
 
@@ -299,7 +299,7 @@ Write 1–2 concise sentences.
 
 exports.generateReply = async (originalEmail, instruction) => {
   const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-120b",
 
     temperature: 0.4,
 
