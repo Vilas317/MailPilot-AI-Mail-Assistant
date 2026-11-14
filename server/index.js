@@ -21,6 +21,7 @@ console.log("Google OAuth Callback:", process.env.GOOGLE_CALLBACK_URL);
 console.log("==============");
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.use(
   cors({
@@ -40,7 +41,7 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
     },
   })
@@ -49,15 +50,15 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use((req, res, next) => {
-  console.log("==============");
-  console.log("Session:", req.session);
-  console.log("User:", req.user);
-  console.log("Authenticated:", req.isAuthenticated());
-  console.log("==============");
+// app.use((req, res, next) => {
+//   // console.log("==============");
+//   // console.log("Session:", req.session);
+//   // console.log("User:", req.user);
+//   console.log("Authenticated:", req.isAuthenticated());
+//   console.log("==============");
 
-  next();
-});
+//   next();
+// });
 
 app.use("/auth", authRoutes);
 app.use("/ai", aiRoutes);
