@@ -250,7 +250,7 @@ Avoid robotic wording, unnecessary repetition, and overly formal language unless
 
 exports.summarizeEmail = async (emailContent) => {
   const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-120b",
 
     temperature: 0.2,
 
