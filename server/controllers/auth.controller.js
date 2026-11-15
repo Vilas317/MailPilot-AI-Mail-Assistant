@@ -1,5 +1,6 @@
 const {
   getInbox,
+  getInboxPage,
   getEmail,
   sendEmail,
   getSentEmails,
@@ -105,29 +106,37 @@ exports.googleSuccess = (req, res) => {
   };
   
   exports.getInbox = async (req, res) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          message: "Not authenticated",
-        });
-      }
-  
-      const emails = await getInbox(req.user);
-  
-      res.json({
-        success: true,
-        emails,
-      });
-    } catch (error) {
-      console.error(error);
-  
-      res.status(500).json({
+  try {
+    if (!req.user) {
+      return res.status(401).json({
         success: false,
-        message: error.message,
+        message: "Not authenticated",
       });
     }
-  };
+
+    const pageToken = req.query.pageToken || null;
+
+    const result = await getInboxPage(
+      req.user,
+      pageToken
+    );
+
+    res.json({
+      success: true,
+      emails: result.emails,
+      nextPageToken: result.nextPageToken,
+      resultSizeEstimate: result.resultSizeEstimate,
+    });
+
+  } catch (error) {
+    console.error("Inbox pagination error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
   exports.getSentEmails = async (req, res) => {
     try {

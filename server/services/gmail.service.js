@@ -281,3 +281,57 @@ exports.getLatestReplyData = async (user) => {
       : `Re: ${subject}`,
   };
 };
+exports.getInboxPage = async (user, pageToken = null) => {
+  const gmail = createGmailClient(user);
+
+  const params = {
+    userId: "me",
+    maxResults: 10,
+    labelIds: ["INBOX"],
+  };
+
+  if (pageToken) {
+    params.pageToken = pageToken;
+  }
+
+  const response = await gmail.users.messages.list(params);
+
+  const messages = response.data.messages || [];
+
+  const emails = await Promise.all(
+    messages.map(async (msg) => {
+      const mail = await gmail.users.messages.get({
+        userId: "me",
+        id: msg.id,
+        format: "metadata",
+        metadataHeaders: ["From", "Subject", "Date"],
+      });
+
+      const headers = mail.data.payload.headers || [];
+
+      const getHeader = (name) =>
+        headers.find((h) => h.name === name)?.value || "";
+
+      return {
+        id: msg.id,
+        threadId: msg.threadId,
+        sender: cleanSender(getHeader("From")),
+        subject: getHeader("Subject"),
+        date: getHeader("Date"),
+        preview: mail.data.snippet,
+        unread: mail.data.labelIds?.includes("UNREAD") || false,
+      };
+    })
+  );
+
+  emails.sort((a, b) => {
+    if (a.unread === b.unread) return 0;
+    return a.unread ? -1 : 1;
+  });
+
+  return {
+    emails,
+    nextPageToken: response.data.nextPageToken || null,
+    resultSizeEstimate: response.data.resultSizeEstimate || 0,
+  };
+};
