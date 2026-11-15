@@ -155,6 +155,58 @@ exports.getSentEmails = async (user) => {
   return emails;
 };
 
+// SENT EMAILS WITH PAGINATION
+exports.getSentEmailsPage = async (user, pageToken = null) => {
+  const gmail = createGmailClient(user);
+
+  const params = {
+    userId: "me",
+    maxResults: 10,
+    labelIds: ["SENT"],
+  };
+
+  if (pageToken) {
+    params.pageToken = pageToken;
+  }
+
+  const response = await gmail.users.messages.list(params);
+
+  const messages = response.data.messages || [];
+
+  const emails = await Promise.all(
+    messages.map(async (msg) => {
+      const mail = await gmail.users.messages.get({
+        userId: "me",
+        id: msg.id,
+        format: "metadata",
+        metadataHeaders: ["To", "Subject", "Date"],
+      });
+
+      const headers = mail.data.payload?.headers || [];
+
+      const getHeader = (name) =>
+        headers.find(
+          (h) => h.name.toLowerCase() === name.toLowerCase()
+        )?.value || "";
+
+      return {
+        id: msg.id,
+        threadId: msg.threadId,
+        receiver: getHeader("To"),
+        subject: getHeader("Subject"),
+        date: getHeader("Date"),
+        preview: mail.data.snippet,
+      };
+    })
+  );
+
+  return {
+    emails,
+    nextPageToken: response.data.nextPageToken || null,
+    resultSizeEstimate: response.data.resultSizeEstimate || 0,
+  };
+};
+
 // Get a single email
 exports.getEmail = async (user, id) => {
   const gmail = createGmailClient(user);

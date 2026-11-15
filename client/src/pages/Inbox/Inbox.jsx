@@ -45,6 +45,13 @@ export default function Inbox() {
     });
   }, [searchQuery]);
 
+  // Reset Inbox pagination whenever Inbox is clicked
+useEffect(() => {
+  setInboxPagination({
+    ...initialPagination,
+  });
+}, [inboxRefreshKey]);
+
   // Select active pagination state
   const activePagination =
     viewMode === "search"
