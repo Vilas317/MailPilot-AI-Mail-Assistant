@@ -278,10 +278,23 @@ exports.sendEmail = async (user, { to, subject, body }) => {
 };
 
 // Unread emails
+// Get unread emails directly from Gmail
 exports.getUnreadEmails = async (user) => {
-  const emails = await exports.getInbox(user);
+  const gmail = createGmailClient(user);
 
-  return emails.filter((email) => email.unread);
+  const response = await gmail.users.messages.list({
+    userId: "me",
+    maxResults: 10,
+    labelIds: ["INBOX", "UNREAD"],
+  });
+
+  const messages = response.data.messages || [];
+
+  const emails = await Promise.all(
+    messages.map((msg) => getEmailMetadata(gmail, msg))
+  );
+
+  return emails;
 };
 
 // Latest email
