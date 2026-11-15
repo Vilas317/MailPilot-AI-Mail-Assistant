@@ -7,25 +7,39 @@ import { useEmail } from "../../context/EmailContext";
 export default function Inbox() {
   const navigate = useNavigate();
 
-  const { emails, setEmails } = useEmail();
+  const {
+    emails,
+    setEmails,
+    inboxRefreshKey,
+  } = useEmail();
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Don't fetch again if emails already exist in Context
-    if (emails.length > 0) {
-      setLoading(false);
-      return;
-    }
+    let isMounted = true;
+
+    setLoading(true);
 
     api
       .get("/auth/emails")
       .then((res) => {
-        setEmails(res.data.emails);
+        if (isMounted) {
+          setEmails(res.data.emails || []);
+        }
       })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        console.error("Failed to fetch inbox:", err);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
 
-  }, [emails, setEmails]);
+    return () => {
+      isMounted = false;
+    };
+  }, [inboxRefreshKey, setEmails]);
 
   if (loading) {
     return (
@@ -52,7 +66,7 @@ export default function Inbox() {
           </h2>
 
           <p className="mt-2 text-gray-500">
-            Try another search or check back later.
+            Your inbox is currently empty.
           </p>
         </div>
       ) : (

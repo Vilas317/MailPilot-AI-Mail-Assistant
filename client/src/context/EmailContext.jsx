@@ -4,9 +4,13 @@ const EmailContext = createContext();
 
 export function EmailProvider({ children }) {
   const [emails, setEmails] = useState([]);
-
-  // Currently opened email
   const [currentEmail, setCurrentEmail] = useState(null);
+
+  const [inboxRefreshKey, setInboxRefreshKey] = useState(0);
+
+  const refreshInbox = () => {
+    setInboxRefreshKey((prev) => prev + 1);
+  };
 
   return (
     <EmailContext.Provider
@@ -15,6 +19,8 @@ export function EmailProvider({ children }) {
         setEmails,
         currentEmail,
         setCurrentEmail,
+        inboxRefreshKey,
+        refreshInbox,
       }}
     >
       {children}

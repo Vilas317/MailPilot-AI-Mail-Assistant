@@ -1,6 +1,9 @@
 import { NavLink } from "react-router-dom";
+import { useEmail } from "../context/EmailContext";
 
 export default function Sidebar() {
+  const { refreshInbox } = useEmail();
+
   return (
     <aside className="w-64 bg-slate-900 text-white h-screen sticky top-0 flex flex-col">
 
@@ -24,8 +27,10 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2">
 
+        {/* Inbox */}
         <NavLink
           to="/"
+          onClick={refreshInbox}
           className={({ isActive }) =>
             `flex items-center gap-3 rounded-lg px-4 py-3 transition-all duration-200 hover:translate-x-1 ${
               isActive
@@ -37,6 +42,7 @@ export default function Sidebar() {
           📥 Inbox
         </NavLink>
 
+        {/* Sent */}
         <NavLink
           to="/sent"
           className={({ isActive }) =>
@@ -50,6 +56,7 @@ export default function Sidebar() {
           📤 Sent
         </NavLink>
 
+        {/* Compose */}
         <NavLink
           to="/compose"
           className={({ isActive }) =>
@@ -66,29 +73,29 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-<div className="border-t border-slate-700 px-4 py-5 text-center">
-  <p className="text-xs font-semibold text-slate-300">
-    Processity Mail AI
-  </p>
+      <div className="border-t border-slate-700 px-4 py-5 text-center">
+        <p className="text-xs font-semibold text-slate-300">
+          Processity Mail AI
+        </p>
 
-  <p className="mt-1 text-[11px] text-slate-500">
-    Version 1.0.0
-  </p>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Version 1.0.0
+        </p>
 
-  <div className="my-3 border-t border-slate-700"></div>
+        <div className="my-3 border-t border-slate-700"></div>
 
-  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
-    Designed & Developed by
-  </p>
+        <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
+          Designed & Developed by
+        </p>
 
-  <p className="mt-1 text-sm font-semibold text-white">
-    Vilas Tamrakar
-  </p>
+        <p className="mt-1 text-sm font-semibold text-white">
+          Vilas Tamrakar
+        </p>
 
-  <p className="mt-2 text-[11px] text-slate-500">
-    © 2026 All Rights Reserved
-  </p>
-</div>
+        <p className="mt-2 text-[11px] text-slate-500">
+          © 2026 All Rights Reserved
+        </p>
+      </div>
 
     </aside>
   );
