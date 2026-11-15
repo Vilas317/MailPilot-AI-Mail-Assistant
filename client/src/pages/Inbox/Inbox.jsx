@@ -38,21 +38,17 @@ export default function Inbox() {
     ...initialPagination,
   });
 
-  // Reset search pagination when a new query is submitted
+  // Reset search pagination when a new query is submitted.
   useEffect(() => {
-    setSearchPagination({
-      ...initialPagination,
-    });
+    setSearchPagination({ ...initialPagination });
   }, [searchQuery]);
 
-  // Reset Inbox pagination whenever Inbox is clicked
-useEffect(() => {
-  setInboxPagination({
-    ...initialPagination,
-  });
-}, [inboxRefreshKey]);
+  // Reset Inbox pagination whenever Inbox is refreshed.
+  useEffect(() => {
+    setInboxPagination({ ...initialPagination });
+  }, [inboxRefreshKey]);
 
-  // Select active pagination state
+  // Select active pagination state.
   const activePagination =
     viewMode === "search"
       ? searchPagination
@@ -71,34 +67,42 @@ useEffect(() => {
     totalEmails,
   } = activePagination;
 
-  // Fetch active view
+  // Fetch active view.
   useEffect(() => {
     let isMounted = true;
+
+    const controller = new AbortController();
 
     const fetchEmails = async () => {
       setLoading(true);
       setError("");
 
       try {
+        // Handle empty search queries.
+        if (viewMode === "search" && !searchQuery) {
+          if (isMounted) {
+            setEmails([]);
+          }
+          return;
+        }
+
         let response;
 
         if (viewMode === "search") {
-          if (!searchQuery) {
-            setEmails([]);
-            setLoading(false);
-            return;
-          }
-
-          response = await api.post("/ai/chat", {
-            searchQuery,
-            pageToken,
-          });
-
+          response = await api.post(
+            "/ai/chat",
+            {
+              searchQuery,
+              pageToken,
+            },
+            {
+              signal: controller.signal,
+            }
+          );
         } else {
           response = await api.get("/auth/emails", {
-            params: pageToken
-              ? { pageToken }
-              : {},
+            params: pageToken ? { pageToken } : {},
+            signal: controller.signal,
           });
         }
 
@@ -118,19 +122,24 @@ useEffect(() => {
           nextPageToken: data.nextPageToken || null,
           totalEmails: data.resultSizeEstimate || 0,
         }));
-
       } catch (err) {
+        if (
+          err.name === "CanceledError" ||
+          err.code === "ERR_CANCELED"
+        ) {
+          return;
+        }
+
         console.error("Failed to fetch emails:", err);
 
         if (isMounted) {
           setError(
             err.response?.data?.message ||
-            "Failed to load emails. Please try again."
+              "Failed to load emails. Please try again."
           );
         }
-
       } finally {
-        if (isMounted) {
+        if (isMounted && !controller.signal.aborted) {
           setLoading(false);
         }
       }
@@ -140,34 +149,33 @@ useEffect(() => {
 
     return () => {
       isMounted = false;
+      controller.abort();
     };
-
   }, [
     pageToken,
     inboxRefreshKey,
     viewMode,
     searchQuery,
     setEmails,
+    setActivePagination,
   ]);
 
-  // Next page
+  // Next page.
   const handleNext = () => {
     if (!nextPageToken || loading) return;
 
     setActivePagination((prev) => ({
       ...prev,
-
       pageTokens: [
         ...prev.pageTokens.slice(0, prev.currentPage),
         nextPageToken,
       ],
-
       pageToken: nextPageToken,
       currentPage: prev.currentPage + 1,
     }));
   };
 
-  // Previous page
+  // Previous page.
   const handlePrevious = () => {
     if (currentPage <= 1 || loading) return;
 
@@ -197,25 +205,32 @@ useEffect(() => {
 
   return (
     <div>
-
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-end justify-between gap-4 mb-7">
+        <div>
+          <p className="page-eyebrow">
+            {viewMode === "search" ? "Mailbox search" : "Your mailbox"}
+          </p>
 
-        <h1 className="text-3xl font-bold">
-          {viewMode === "search"
-            ? "Search Results"
-            : "Inbox"}
-        </h1>
+          <h1 className="page-title">
+            {viewMode === "search" ? "Search Results" : "Inbox"}
+          </h1>
 
-        <span className="text-sm text-gray-500">
-          {totalEmails} emails
+          <p className="page-subtitle">
+            {viewMode === "search"
+              ? `Results for ${searchQuery}`
+              : "A calmer space for everything that matters."}
+          </p>
+        </div>
+
+        <span className="text-xs text-[#86868b] pb-1">
+          {totalEmails} messages
         </span>
-
       </div>
 
       {/* Active search */}
       {viewMode === "search" && (
-        <div className="mb-5 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+        <div className="mb-5 bg-[#f5f8ff] border border-[#e4edfb] rounded-xl px-4 py-3">
           <p className="text-sm text-blue-800">
             Showing results for:{" "}
             <strong>{searchQuery}</strong>
@@ -232,12 +247,8 @@ useEffect(() => {
 
       {/* Email List */}
       {!error && emails.length === 0 ? (
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-
-          <div className="text-6xl mb-4">
-            📭
-          </div>
+        <div className="empty-state">
+          <div className="text-6xl mb-4">📭</div>
 
           <h2 className="text-2xl font-semibold text-gray-800">
             No emails found
@@ -248,14 +259,10 @@ useEffect(() => {
               ? "No emails matched your search."
               : "Your inbox is currently empty."}
           </p>
-
         </div>
-
       ) : (
-
         <>
-          <div className="space-y-3">
-
+          <div className="border-t border-[#eeeef2]">
             {emails.map((email) => (
               <EmailCard
                 key={email.id}
@@ -267,37 +274,32 @@ useEffect(() => {
                 }
               />
             ))}
-
           </div>
 
           {/* Pagination */}
           <div className="flex items-center justify-center gap-5 mt-8 mb-6">
-
             <button
               onClick={handlePrevious}
               disabled={currentPage === 1 || loading}
-              className="px-5 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="pagination-btn"
             >
               ← Previous
             </button>
 
-            <span className="text-sm font-semibold text-gray-700">
+            <span className="text-xs font-medium text-[#6e6e73]">
               {currentPage} / {Math.max(totalPages, currentPage)}
             </span>
 
             <button
               onClick={handleNext}
               disabled={!nextPageToken || loading}
-              className="px-5 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="pagination-btn"
             >
               Next →
             </button>
-
           </div>
         </>
-
       )}
-
     </div>
   );
 }

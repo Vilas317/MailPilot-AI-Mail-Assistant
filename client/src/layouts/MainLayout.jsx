@@ -5,26 +5,15 @@ import AssistantPanel from "../components/AssistantPanel";
 
 export default function MainLayout() {
   return (
-    <div className="h-screen flex bg-slate-100">
-
+    <div className="app-shell">
       <Sidebar />
-
-      <div className="flex-1 flex flex-col">
-
+      <section className="app-main">
         <Header />
-
-        <div className="flex flex-1 overflow-hidden">
-
-          <main className="flex-1 p-6 overflow-auto">
-            <Outlet />
-          </main>
-
+        <div className="app-content-row">
+          <main className="app-content"><Outlet /></main>
           <AssistantPanel />
-
         </div>
-
-      </div>
-
+      </section>
     </div>
   );
 }
