@@ -1,8 +1,8 @@
-import { NavLink } from "react-router-dom";
 import { useEmail } from "../context/EmailContext";
+import { NavLink } from "react-router-dom";
 
 export default function Sidebar() {
-  const { refreshInbox } = useEmail();
+  const { refreshInbox, refreshSent } = useEmail();
 
   return (
     <aside className="w-64 bg-slate-900 text-white h-screen sticky top-0 flex flex-col">
@@ -10,7 +10,6 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-6 border-b border-slate-700">
         <div className="flex items-center gap-3">
-
           <span className="text-3xl">
             📧
           </span>
@@ -24,7 +23,6 @@ export default function Sidebar() {
               Mail AI
             </p>
           </div>
-
         </div>
       </div>
 
@@ -49,6 +47,7 @@ export default function Sidebar() {
         {/* Sent */}
         <NavLink
           to="/sent"
+          onClick={refreshSent}
           className={({ isActive }) =>
             `flex items-center gap-3 rounded-lg px-4 py-3 transition-all duration-200 hover:translate-x-1 ${
               isActive
