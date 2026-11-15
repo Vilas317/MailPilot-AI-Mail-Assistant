@@ -208,9 +208,11 @@ exports.getSentEmailsPage = async (user, pageToken = null) => {
 };
 
 // Get a single email
+// Get a single email and mark it as read
 exports.getEmail = async (user, id) => {
   const gmail = createGmailClient(user);
 
+  // Fetch the email first
   const response = await gmail.users.messages.get({
     userId: "me",
     id,
@@ -219,6 +221,26 @@ exports.getEmail = async (user, id) => {
 
   const email = response.data;
 
+  // Check whether the email is unread
+  const isUnread = email.labelIds?.includes("UNREAD");
+
+  // Mark it as read in Gmail
+  if (isUnread) {
+    await gmail.users.messages.modify({
+      userId: "me",
+      id,
+      requestBody: {
+        removeLabelIds: ["UNREAD"],
+      },
+    });
+
+    // Update the returned email object
+    email.labelIds = (email.labelIds || []).filter(
+      (label) => label !== "UNREAD"
+    );
+  }
+
+  // Decode the email body
   email.decodedBody = decodeBody(email.payload);
 
   return email;
