@@ -10,7 +10,10 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-6 border-b border-slate-700">
         <div className="flex items-center gap-3">
-          <span className="text-3xl">📧</span>
+
+          <span className="text-3xl">
+            📧
+          </span>
 
           <div>
             <h1 className="text-xl font-bold">
@@ -21,6 +24,7 @@ export default function Sidebar() {
               Mail AI
             </p>
           </div>
+
         </div>
       </div>
 
@@ -74,6 +78,7 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-slate-700 px-4 py-5 text-center">
+
         <p className="text-xs font-semibold text-slate-300">
           Processity Mail AI
         </p>
@@ -95,6 +100,7 @@ export default function Sidebar() {
         <p className="mt-2 text-[11px] text-slate-500">
           © 2026 All Rights Reserved
         </p>
+
       </div>
 
     </aside>

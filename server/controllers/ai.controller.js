@@ -21,19 +21,53 @@ exports.chat = async (req, res) => {
       });
     }
 
-    const { message, currentEmailId } = req.body;
+    const {
+      message,
+      currentEmailId,
+      searchQuery,
+      pageToken,
+    } = req.body;
 
-    if (!message) {
+    // SEARCH PAGINATION
+    // This must run before detectIntent().
+    // Clicking Next/Previous does not require another AI call.
+
+    if (typeof searchQuery === "string" && searchQuery.trim()) {
+      const searchResult = await searchEmails(
+        req.user,
+        searchQuery.trim(),
+        pageToken || null
+      );
+
+      return res.json({
+        success: true,
+
+        result: {
+          intent: "SEARCH_EMAILS",
+          query: searchQuery,
+          reply: "Here are your search results.",
+        },
+
+        data: searchResult.emails,
+        nextPageToken: searchResult.nextPageToken,
+        resultSizeEstimate: searchResult.resultSizeEstimate,
+      });
+    }
+
+    // Validate normal AI chat request
+    if (!message || typeof message !== "string") {
       return res.status(400).json({
         success: false,
         message: "Message is required.",
       });
     }
 
+    // Detect AI intent
     const result = await detectIntent(message);
 
     switch (result.intent) {
 
+      // SHOW UNREAD EMAILS
       case "SHOW_UNREAD": {
         const emails = await getUnreadEmails(req.user);
 
@@ -44,6 +78,7 @@ exports.chat = async (req, res) => {
         });
       }
 
+      // OPEN LATEST EMAIL
       case "OPEN_LATEST_EMAIL": {
         const email = await getLatestEmail(req.user);
 
@@ -54,16 +89,16 @@ exports.chat = async (req, res) => {
         });
       }
 
+      // SUMMARIZE EMAIL
       case "SUMMARIZE_EMAIL": {
-
         let email;
-      
+
         if (currentEmailId) {
           email = await getEmail(req.user, currentEmailId);
         } else {
           email = await getLatestEmail(req.user);
         }
-      
+
         if (!email) {
           return res.json({
             success: true,
@@ -73,14 +108,14 @@ exports.chat = async (req, res) => {
             },
           });
         }
-      
+
         const emailContent =
           email.decodedBody ||
           email.snippet ||
           "No email content found.";
-      
+
         const summary = await summarizeEmail(emailContent);
-      
+
         return res.json({
           success: true,
           result: {
@@ -90,19 +125,24 @@ exports.chat = async (req, res) => {
         });
       }
 
+      // SEARCH EMAILS - FIRST PAGE
       case "SEARCH_EMAILS": {
-        const emails = await searchEmails(
+        const searchResult = await searchEmails(
           req.user,
-          result.query
+          result.query,
+          null
         );
 
         return res.json({
           success: true,
           result,
-          data: emails,
+          data: searchResult.emails,
+          nextPageToken: searchResult.nextPageToken,
+          resultSizeEstimate: searchResult.resultSizeEstimate,
         });
       }
 
+      // COMPOSE EMAIL
       case "COMPOSE_EMAIL": {
         return res.json({
           success: true,
@@ -115,23 +155,29 @@ exports.chat = async (req, res) => {
         });
       }
 
+      // REPLY EMAIL
       case "REPLY_EMAIL": {
         let replyData;
-      
+
         if (currentEmailId) {
-          const email = await getEmail(req.user, currentEmailId);
-      
+          const email = await getEmail(
+            req.user,
+            currentEmailId
+          );
+
           const headers = email.payload.headers || [];
-      
+
           const getHeader = (name) =>
-            headers.find((h) => h.name === name)?.value || "";
-      
+            headers.find(
+              (h) => h.name.toLowerCase() === name.toLowerCase()
+            )?.value || "";
+
           const from = getHeader("From");
           const subject = getHeader("Subject");
-      
+
           const emailAddress =
             from.match(/<(.+?)>/)?.[1] || from;
-      
+
           replyData = {
             email,
             to: emailAddress,
@@ -139,10 +185,11 @@ exports.chat = async (req, res) => {
               ? subject
               : `Re: ${subject}`,
           };
+
         } else {
           replyData = await getLatestReplyData(req.user);
         }
-      
+
         if (!replyData) {
           return res.json({
             success: true,
@@ -152,14 +199,14 @@ exports.chat = async (req, res) => {
             },
           });
         }
-      
+
         const replyBody = await generateReply(
           replyData.email.decodedBody ||
             replyData.email.snippet ||
             "",
           result.body
         );
-      
+
         return res.json({
           success: true,
           result,
@@ -171,6 +218,7 @@ exports.chat = async (req, res) => {
         });
       }
 
+      // DEFAULT
       default:
         return res.json({
           success: true,
@@ -179,7 +227,7 @@ exports.chat = async (req, res) => {
     }
 
   } catch (err) {
-    console.error(err);
+    console.error("AI Controller Error:", err);
 
     return res.status(500).json({
       success: false,

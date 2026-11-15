@@ -6,6 +6,14 @@ import { useEmail } from "../../context/EmailContext";
 
 const EMAILS_PER_PAGE = 10;
 
+const initialPagination = {
+  pageToken: null,
+  nextPageToken: null,
+  pageTokens: [null],
+  currentPage: 1,
+  totalEmails: 0,
+};
+
 export default function Inbox() {
   const navigate = useNavigate();
 
@@ -13,18 +21,50 @@ export default function Inbox() {
     emails,
     setEmails,
     inboxRefreshKey,
+    viewMode,
+    searchQuery,
   } = useEmail();
 
   const [loading, setLoading] = useState(true);
-  const [pageToken, setPageToken] = useState(null);
-  const [nextPageToken, setNextPageToken] = useState(null);
-
-  const [pageTokens, setPageTokens] = useState([null]);
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const [totalEmails, setTotalEmails] = useState(0);
   const [error, setError] = useState("");
 
+  // Independent Inbox pagination
+  const [inboxPagination, setInboxPagination] = useState({
+    ...initialPagination,
+  });
+
+  // Independent Search pagination
+  const [searchPagination, setSearchPagination] = useState({
+    ...initialPagination,
+  });
+
+  // Reset search pagination when a new query is submitted
+  useEffect(() => {
+    setSearchPagination({
+      ...initialPagination,
+    });
+  }, [searchQuery]);
+
+  // Select active pagination state
+  const activePagination =
+    viewMode === "search"
+      ? searchPagination
+      : inboxPagination;
+
+  const setActivePagination =
+    viewMode === "search"
+      ? setSearchPagination
+      : setInboxPagination;
+
+  const {
+    pageToken,
+    nextPageToken,
+    pageTokens,
+    currentPage,
+    totalEmails,
+  } = activePagination;
+
+  // Fetch active view
   useEffect(() => {
     let isMounted = true;
 
@@ -33,22 +73,47 @@ export default function Inbox() {
       setError("");
 
       try {
-        const params = pageToken
-          ? { pageToken }
-          : {};
+        let response;
 
-        const { data } = await api.get("/auth/emails", {
-          params,
-        });
+        if (viewMode === "search") {
+          if (!searchQuery) {
+            setEmails([]);
+            setLoading(false);
+            return;
+          }
+
+          response = await api.post("/ai/chat", {
+            searchQuery,
+            pageToken,
+          });
+
+        } else {
+          response = await api.get("/auth/emails", {
+            params: pageToken
+              ? { pageToken }
+              : {},
+          });
+        }
 
         if (!isMounted) return;
 
-        setEmails(data.emails || []);
-        setNextPageToken(data.nextPageToken || null);
-        setTotalEmails(data.resultSizeEstimate || 0);
+        const data = response.data;
+
+        const fetchedEmails =
+          viewMode === "search"
+            ? data.data || []
+            : data.emails || [];
+
+        setEmails(fetchedEmails);
+
+        setActivePagination((prev) => ({
+          ...prev,
+          nextPageToken: data.nextPageToken || null,
+          totalEmails: data.resultSizeEstimate || 0,
+        }));
 
       } catch (err) {
-        console.error("Failed to fetch inbox:", err);
+        console.error("Failed to fetch emails:", err);
 
         if (isMounted) {
           setError(
@@ -69,33 +134,49 @@ export default function Inbox() {
     return () => {
       isMounted = false;
     };
-  }, [pageToken, inboxRefreshKey, setEmails]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(totalEmails / EMAILS_PER_PAGE)
-  );
+  }, [
+    pageToken,
+    inboxRefreshKey,
+    viewMode,
+    searchQuery,
+    setEmails,
+  ]);
 
+  // Next page
   const handleNext = () => {
     if (!nextPageToken || loading) return;
 
-    setPageTokens((prev) => [
-      ...prev.slice(0, currentPage),
-      nextPageToken,
-    ]);
+    setActivePagination((prev) => ({
+      ...prev,
 
-    setPageToken(nextPageToken);
-    setCurrentPage((prev) => prev + 1);
+      pageTokens: [
+        ...prev.pageTokens.slice(0, prev.currentPage),
+        nextPageToken,
+      ],
+
+      pageToken: nextPageToken,
+      currentPage: prev.currentPage + 1,
+    }));
   };
 
+  // Previous page
   const handlePrevious = () => {
     if (currentPage <= 1 || loading) return;
 
     const previousToken = pageTokens[currentPage - 2];
 
-    setPageToken(previousToken);
-    setCurrentPage((prev) => prev - 1);
+    setActivePagination((prev) => ({
+      ...prev,
+      pageToken: previousToken,
+      currentPage: prev.currentPage - 1,
+    }));
   };
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(totalEmails / EMAILS_PER_PAGE)
+  );
 
   if (loading) {
     return (
@@ -109,16 +190,31 @@ export default function Inbox() {
 
   return (
     <div>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
+
         <h1 className="text-3xl font-bold">
-          Inbox
+          {viewMode === "search"
+            ? "Search Results"
+            : "Inbox"}
         </h1>
 
         <span className="text-sm text-gray-500">
           {totalEmails} emails
         </span>
+
       </div>
+
+      {/* Active search */}
+      {viewMode === "search" && (
+        <div className="mb-5 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+          <p className="text-sm text-blue-800">
+            Showing results for:{" "}
+            <strong>{searchQuery}</strong>
+          </p>
+        </div>
+      )}
 
       {/* Error */}
       {error && (
@@ -129,7 +225,9 @@ export default function Inbox() {
 
       {/* Email List */}
       {!error && emails.length === 0 ? (
+
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+
           <div className="text-6xl mb-4">
             📭
           </div>
@@ -139,12 +237,18 @@ export default function Inbox() {
           </h2>
 
           <p className="mt-2 text-gray-500">
-            Your inbox is currently empty.
+            {viewMode === "search"
+              ? "No emails matched your search."
+              : "Your inbox is currently empty."}
           </p>
+
         </div>
+
       ) : (
+
         <>
           <div className="space-y-3">
+
             {emails.map((email) => (
               <EmailCard
                 key={email.id}
@@ -156,6 +260,7 @@ export default function Inbox() {
                 }
               />
             ))}
+
           </div>
 
           {/* Pagination */}
@@ -183,7 +288,9 @@ export default function Inbox() {
 
           </div>
         </>
+
       )}
+
     </div>
   );
 }

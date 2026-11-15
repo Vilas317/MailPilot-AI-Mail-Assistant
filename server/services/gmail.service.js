@@ -28,6 +28,38 @@ const extractEmail = (sender = "") => {
   return sender.trim();
 };
 
+// Convert Gmail message metadata into frontend email object
+const getEmailMetadata = async (gmail, msg, headersToFetch = [
+  "From",
+  "Subject",
+  "Date",
+]) => {
+  const mail = await gmail.users.messages.get({
+    userId: "me",
+    id: msg.id,
+    format: "metadata",
+    metadataHeaders: headersToFetch,
+  });
+
+  const headers = mail.data.payload?.headers || [];
+
+  const getHeader = (name) =>
+    headers.find(
+      (h) => h.name.toLowerCase() === name.toLowerCase()
+    )?.value || "";
+
+  return {
+    id: msg.id,
+    threadId: msg.threadId,
+    sender: cleanSender(getHeader("From")),
+    subject: getHeader("Subject"),
+    date: getHeader("Date"),
+    preview: mail.data.snippet,
+    unread: mail.data.labelIds?.includes("UNREAD") || false,
+  };
+};
+
+// Normal Inbox - existing functionality
 exports.getInbox = async (user) => {
   const gmail = createGmailClient(user);
 
@@ -40,29 +72,9 @@ exports.getInbox = async (user) => {
   const messages = response.data.messages || [];
 
   const emails = await Promise.all(
-    messages.map(async (msg) => {
-      const mail = await gmail.users.messages.get({
-        userId: "me",
-        id: msg.id,
-        format: "metadata",
-        metadataHeaders: ["From", "Subject", "Date"],
-      });
-
-      const headers = mail.data.payload.headers || [];
-
-      const getHeader = (name) =>
-        headers.find((h) => h.name === name)?.value || "";
-
-      return {
-        id: msg.id,
-        threadId: msg.threadId,
-        sender: cleanSender(getHeader("From")),
-        subject: getHeader("Subject"),
-        date: getHeader("Date"),
-        preview: mail.data.snippet,
-        unread: mail.data.labelIds?.includes("UNREAD") || false,
-      };
-    })
+    messages.map((msg) =>
+      getEmailMetadata(gmail, msg)
+    )
   );
 
   emails.sort((a, b) => {
@@ -73,23 +85,13 @@ exports.getInbox = async (user) => {
   return emails;
 };
 
+// Decode Gmail message body
 const decodeBody = (payload) => {
   if (!payload) return "";
 
   if (
-    payload.mimeType === "text/html" &&
-    payload.body?.data
-  ) {
-    return Buffer.from(
-      payload.body.data
-        .replace(/-/g, "+")
-        .replace(/_/g, "/"),
-      "base64"
-    ).toString("utf8");
-  }
-
-  if (
-    payload.mimeType === "text/plain" &&
+    (payload.mimeType === "text/html" ||
+      payload.mimeType === "text/plain") &&
     payload.body?.data
   ) {
     return Buffer.from(
@@ -111,6 +113,7 @@ const decodeBody = (payload) => {
   return "";
 };
 
+// Sent emails
 exports.getSentEmails = async (user) => {
   const gmail = createGmailClient(user);
 
@@ -131,10 +134,12 @@ exports.getSentEmails = async (user) => {
         metadataHeaders: ["To", "Subject", "Date"],
       });
 
-      const headers = mail.data.payload.headers || [];
+      const headers = mail.data.payload?.headers || [];
 
       const getHeader = (name) =>
-        headers.find((h) => h.name === name)?.value || "";
+        headers.find(
+          (h) => h.name.toLowerCase() === name.toLowerCase()
+        )?.value || "";
 
       return {
         id: msg.id,
@@ -150,6 +155,7 @@ exports.getSentEmails = async (user) => {
   return emails;
 };
 
+// Get a single email
 exports.getEmail = async (user, id) => {
   const gmail = createGmailClient(user);
 
@@ -166,6 +172,7 @@ exports.getEmail = async (user, id) => {
   return email;
 };
 
+// Send email
 exports.sendEmail = async (user, { to, subject, body }) => {
   const gmail = createGmailClient(user);
 
@@ -196,12 +203,14 @@ exports.sendEmail = async (user, { to, subject, body }) => {
   return response.data;
 };
 
+// Unread emails
 exports.getUnreadEmails = async (user) => {
   const emails = await exports.getInbox(user);
 
   return emails.filter((email) => email.unread);
 };
 
+// Latest email
 exports.getLatestEmail = async (user) => {
   const emails = await exports.getInbox(user);
 
@@ -212,52 +221,43 @@ exports.getLatestEmail = async (user) => {
   return exports.getEmail(user, emails[0].id);
 };
 
-exports.searchEmails = async (user, query) => {
+// SEARCH EMAILS WITH PAGINATION
+exports.searchEmails = async (
+  user,
+  query,
+  pageToken = null
+) => {
   const gmail = createGmailClient(user);
 
-  const response = await gmail.users.messages.list({
+  const params = {
     userId: "me",
     q: query,
-    maxResults: 20,
+    maxResults: 10,
     includeSpamTrash: false,
-  });
+  };
+
+  if (pageToken) {
+    params.pageToken = pageToken;
+  }
+
+  const response = await gmail.users.messages.list(params);
 
   const messages = response.data.messages || [];
 
   const emails = await Promise.all(
-    messages.map(async (msg) => {
-      const mail = await gmail.users.messages.get({
-        userId: "me",
-        id: msg.id,
-        format: "metadata",
-        metadataHeaders: ["From", "Subject", "Date"],
-      });
-
-      const headers = mail.data.payload.headers || [];
-
-      const getHeader = (name) =>
-        headers.find((h) => h.name === name)?.value || "";
-
-      return {
-        id: msg.id,
-        threadId: msg.threadId,
-        sender: cleanSender(getHeader("From")),
-        subject: getHeader("Subject"),
-        date: getHeader("Date"),
-        preview: mail.data.snippet,
-        unread: mail.data.labelIds?.includes("UNREAD") || false,
-      };
-    })
+    messages.map((msg) =>
+      getEmailMetadata(gmail, msg)
+    )
   );
 
-  emails.sort((a, b) => {
-    if (a.unread === b.unread) return 0;
-    return a.unread ? -1 : 1;
-  });
-
-  return emails;
+  return {
+    emails,
+    nextPageToken: response.data.nextPageToken || null,
+    resultSizeEstimate: response.data.resultSizeEstimate || 0,
+  };
 };
 
+// Latest reply data
 exports.getLatestReplyData = async (user) => {
   const email = await exports.getLatestEmail(user);
 
@@ -268,7 +268,9 @@ exports.getLatestReplyData = async (user) => {
   const headers = email.payload.headers || [];
 
   const getHeader = (name) =>
-    headers.find((h) => h.name === name)?.value || "";
+    headers.find(
+      (h) => h.name.toLowerCase() === name.toLowerCase()
+    )?.value || "";
 
   const from = getHeader("From");
   const subject = getHeader("Subject");
@@ -281,7 +283,12 @@ exports.getLatestReplyData = async (user) => {
       : `Re: ${subject}`,
   };
 };
-exports.getInboxPage = async (user, pageToken = null) => {
+
+// NORMAL INBOX PAGINATION
+exports.getInboxPage = async (
+  user,
+  pageToken = null
+) => {
   const gmail = createGmailClient(user);
 
   const params = {
@@ -299,29 +306,9 @@ exports.getInboxPage = async (user, pageToken = null) => {
   const messages = response.data.messages || [];
 
   const emails = await Promise.all(
-    messages.map(async (msg) => {
-      const mail = await gmail.users.messages.get({
-        userId: "me",
-        id: msg.id,
-        format: "metadata",
-        metadataHeaders: ["From", "Subject", "Date"],
-      });
-
-      const headers = mail.data.payload.headers || [];
-
-      const getHeader = (name) =>
-        headers.find((h) => h.name === name)?.value || "";
-
-      return {
-        id: msg.id,
-        threadId: msg.threadId,
-        sender: cleanSender(getHeader("From")),
-        subject: getHeader("Subject"),
-        date: getHeader("Date"),
-        preview: mail.data.snippet,
-        unread: mail.data.labelIds?.includes("UNREAD") || false,
-      };
-    })
+    messages.map((msg) =>
+      getEmailMetadata(gmail, msg)
+    )
   );
 
   emails.sort((a, b) => {

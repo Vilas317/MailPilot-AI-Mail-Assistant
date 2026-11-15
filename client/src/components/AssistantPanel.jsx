@@ -10,6 +10,8 @@ export default function AssistantPanel() {
   const {
     setEmails,
     currentEmail,
+    openSearch,
+    refreshInbox,
   } = useEmail();
 
   const quickCommands = [
@@ -72,8 +74,7 @@ export default function AssistantPanel() {
         },
       ]);
 
-      // ---------- AI Actions ----------
-
+      // OPEN LATEST EMAIL
       if (
         result?.intent === "OPEN_LATEST_EMAIL" &&
         data.data
@@ -82,26 +83,41 @@ export default function AssistantPanel() {
         navigate(`/email/${data.data.id}`);
       }
 
+      // SHOW UNREAD EMAILS
       if (
-        (result?.intent === "SHOW_UNREAD" ||
-          result?.intent === "SEARCH_EMAILS") &&
+        result?.intent === "SHOW_UNREAD" &&
         Array.isArray(data.data)
       ) {
-        setEmails(data.data);
+        // Use Gmail search pagination for unread results too.
+        openSearch("is:unread in:inbox");
 
-        if (data.data.length === 0) {
-          toast("No emails found.");
-        } else {
-          toast.success(
-            `${data.data.length} email${
-              data.data.length !== 1 ? "s" : ""
-            } found`
-          );
-        }
+        toast.success(
+          `${data.data.length} unread emails found`
+        );
 
         navigate("/");
       }
 
+      // SEARCH EMAILS
+      if (
+        result?.intent === "SEARCH_EMAILS" &&
+        Array.isArray(data.data)
+      ) {
+        if (!result.query) {
+          toast.error("Search query was not returned.");
+          return;
+        }
+
+        openSearch(result.query);
+
+        toast.success(
+          `${data.resultSizeEstimate || data.data.length} matching emails found`
+        );
+
+        navigate("/");
+      }
+
+      // COMPOSE OR REPLY
       if (
         (result?.intent === "COMPOSE_EMAIL" ||
           result?.intent === "REPLY_EMAIL") &&
@@ -134,6 +150,7 @@ export default function AssistantPanel() {
             "Something went wrong.",
         },
       ]);
+
     } finally {
       setLoading(false);
     }
