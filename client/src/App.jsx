@@ -22,7 +22,7 @@ function ProtectedRoute({ children }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
         <p className="text-gray-500 animate-pulse">
-          Loading Processity Mail AI...
+          Loading MailPilot - AI Mail Assistant...
         </p>
       </div>
     );

@@ -15,7 +15,7 @@ export default function Login() {
     <main className="login-shell">
       <section className="login-card">
         <div className="brand-mark mx-auto mb-5"><Mail size={22}/></div>
-        <p className="page-eyebrow">Processity Mail AI</p>
+        <p className="page-eyebrow">MailPilot - AI Mail Assistant</p>
         <h1 className="text-[32px] leading-tight tracking-[-.045em] font-bold mt-2">Your inbox, in focus.</h1>
         <p className="text-sm leading-6 text-[#86868b] mt-3 mb-8">A thoughtful workspace for your email, with an intelligent assistant by your side.</p>
         <button onClick={handleLogin} className="w-full rounded-xl border border-[#d2d2d7] bg-white py-3 px-4 flex items-center justify-center gap-3 text-sm font-semibold text-[#1d1d1f] hover:bg-[#f5f5f7] transition">
@@ -23,7 +23,7 @@ export default function Login() {
           Continue with Google
         </button>
         <p className="text-[11px] leading-5 text-[#a1a1a6] mt-7">Secure sign-in powered by Google.</p>
-        <div className="border-t border-[#eeeef2] mt-7 pt-5"><p className="text-[10px] text-[#a1a1a6]">© 2026 Processity Mail AI</p></div>
+        <div className="border-t border-[#eeeef2] mt-7 pt-5"><p className="text-[10px] text-[#a1a1a6]">© 2026 MailPilot - AI Mail Assistant</p></div>
       </section>
     </main>
   );
